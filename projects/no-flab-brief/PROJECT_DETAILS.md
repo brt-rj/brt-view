@@ -1,250 +1,135 @@
-# No Flab Brief - Detailed Project Documentation
+# **No-Flab Brief**
 
-## Executive Summary
+NFB is a multi-agent AI journalism system designed to verify, curate, and summarize news from reliable sources. This system uses a "Diligent Author" and "Ruthless Editor" architecture to ensure factual accuracy and eliminate "flab" (sensationalism/bias).
 
-No Flab Brief addresses the challenge of information overload in modern news consumption by providing a curated, verified, and concise news aggregation platform. The system combines multiple data sources with AI-powered curation and fact-checking to deliver high-quality journalism focused on accuracy and objectivity.
+## System Architecture
 
-**Key Achievement**: Successfully aggregates and curates 100 articles daily from 320+ journalists across 8 beats and 4 global regions.
+```mermaid
+graph LR
+    subgraph Sources
+        GDELT["GDELT Project"]
+        RSS["RSS Feeds (News/Social)"]
+    end
 
-## Background
+    subgraph "Filter & Rank"
+        Goldstein[Goldstein Scale]
+        Mentions[NumMentions]
+        Impact[Impact Calculation]
+    end
 
-### Problem Statement
+    subgraph "Verification Layer"
+        FactCheck["Fact Checkers (Snopes/Politifact)"]
+        Journalists["Journalist DB Verification"]
+        CrossRef["Source Cross-Reference"]
+    end
 
-Modern news consumption faces several critical challenges:
-- **Information Overload**: Thousands of articles published daily make it impossible to stay informed
-- **Misinformation**: Spread of unverified claims and fake news
-- **Bias**: Political and commercial biases affecting news coverage
-- **Fragmentation**: Quality journalism scattered across numerous sources
+    subgraph "Agent Reflexion"
+        Author[Diligent Author Agent]
+        Editor[Ruthless Editor Agent]
+    end
 
-### Objectives
-
-1. Aggregate news from diverse, credible sources into a single platform
-2. Verify claims using certified fact-checking organizations
-3. Maintain objectivity through balanced source selection
-4. Provide concise, actionable news summaries
-5. Enable trend analysis through interactive dashboards
-
-## Detailed Methodology
-
-### Data Collection
-
-#### 1. RSS Feed Aggregation
-- Sources defined in `Source.md`
-- Filtered for articles from last 24 hours
-- Consistent date formatting across feeds
-- YouTube channel integration via RSS
-
-#### 2. Social Media Monitoring
-- 320+ journalists tracked via `Journalist-Database.csv`
-- Twitter monitoring through Nitter instances
-- Regional and beat-specific coverage
-- Political lean balancing for politics beat
-
-#### 3. GDELT Integration
-- Goldstein Scale ranking for event significance
-- NumMentions tracking for trending stories
-- Real-time event detection
-- Global coverage across languages
-
-#### 4. NewsData.io & Hacker News
-- API-based article retrieval
-- Full content extraction
-- Technology and startup focus
-- Community-driven relevance
-
-### Analysis Approach
-
-#### Multi-Agent Reflexion (MAR)
-
-**Diligent Author AI**:
-- Synthesizes information from multiple sources
-- Strictly prohibited from causal inference
-- Focuses on factual reporting
-- Maintains neutrality
-
-**Ruthless Editor AI**:
-- Applies objective journalism checklist
-- Verifies facts against fact-checker databases
-- Ensures balanced perspective
-- Enforces "No Causal Inference" rule
-
-#### Verification System
-
-1. **Fact-Checker Integration**: Cross-reference with certified organizations
-2. **Journalist Verification**: Track record and credibility scoring
-3. **Source Triangulation**: Multiple independent corroboration
-4. **Temporal Analysis**: Track claim evolution over time
-
-### Tools and Technologies
-
-- **Python 3.10+**: Core processing engine
-- **Apache Airflow**: Workflow orchestration and scheduling
-- **Pandas**: Data manipulation and Excel output
-- **BeautifulSoup/Scrapy**: Web scraping and content extraction
-- **Apache Superset**: Interactive dashboarding
-- **Archive.org API**: Long-term content preservation
-- **GitHub Actions**: CI/CD automation
-- **JSONSchema**: Data validation
-
-## Results and Findings
-
-### Key Metrics
-
-- **Daily Articles**: 100 (40 politics, 60 other beats)
-- **Source Diversity**: 320+ journalists, 50+ publications
-- **Fact-Check Coverage**: 100% of controversial claims verified
-- **Geographic Balance**: 25% per region (US, EU, APAC, ROW)
-- **Response Time**: <24 hours from publication to inclusion
-
-### Visualizations
-
-The Superset dashboard provides:
-- Source distribution pie charts
-- Temporal trend lines
-- Geographic heat maps
-- Beat-wise bar charts
-- Fact-check status indicators
-- Journalist contribution rankings
-
-### Limitations
-
-- **Language**: Currently English-only
-- **Paywall Content**: Limited access to subscription-based journalism
-- **Real-time**: Daily batch processing vs. real-time streaming
-- **Automated Bias**: ML models may inherit training biases
-
-## Implementation Details
-
-### Architecture
-
-```
-┌─────────────┐
-│   Sources   │ (RSS, GDELT, APIs, Social)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  Ingestion  │ (Airflow DAG - Daily @ 00:00 UTC)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│ Processing  │ (Dedupe, Classify, Rank)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│Verification │ (Fact-Check, Journalist DB)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  Curation   │ (MAR: Author + Editor)
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Storage   │ (Excel, Superset, Archive.org)
-└─────────────┘
+    GDELT & RSS --> Goldstein
+    GDELT & RSS --> Mentions
+    Goldstein & Mentions --> Impact
+    Impact --> Journalists
+    Journalists --> CrossRef
+    CrossRef --> FactCheck
+    FactCheck --> Author
+    Author -- Draft --> Editor
+    Editor -- Critique --> Author
+    Editor -- Final Polish --> Report[Final Brief]
 ```
 
-### Data Pipeline
+## Core Strategy
 
-1. **Collection** (00:00-01:00 UTC): Fetch from all sources
-2. **Deduplication** (01:00-01:30 UTC): Remove duplicates via `src/util/dedupe.py`
-3. **Validation** (01:30-02:00 UTC): Schema validation via `article-schema.json`
-4. **Enrichment** (02:00-03:00 UTC): Add fact-check status, classifications
-5. **Curation** (03:00-04:00 UTC): MAR process for quality filtering
-6. **Export** (04:00-04:30 UTC): Generate Excel files, update Superset
-7. **Archival** (04:30-05:00 UTC): Push to Archive.org
+### 1. Multi-Agent Reflexion (MAR)
 
-### Dashboard Components
+We employ a two-agent system to escape "mental-set failures" and ensure objectivity:
 
-1. **Overview Tab**: High-level metrics and KPIs
-2. **Sources Tab**: Breakdown by publication and journalist
-3. **Beats Tab**: Coverage analysis by topic
-4. **Timeline Tab**: Temporal trends and patterns
-5. **Verification Tab**: Fact-check status and reliability scores
-6. **Geography Tab**: Regional distribution
+#### Agent 1: Diligent Author (The Reporter)
 
-## Usage Guide
+* **Role**: Generates news drafts based on aggregated information from all verified sources.
+* **Rule**: **NO Causal Inference**. The agent must report facts ($A$ happened, then $B$ happened) and strictly avoid implying $A$ *caused* $B$ unless explicitly cited from a direct source.
+* **Output**: A dry, fact-heavy draft synthesizing the "What, Where, When, Who".
 
-### Accessing the Dashboard
+#### Agent 2: Ruthless Editor (The Critic)
 
-The Superset dashboard is embedded above (or accessible via the provided URL). Use filters to:
-- Select specific date ranges
-- Filter by beat or region
-- Search for specific journalists or publications
-- View fact-check status
+* **Role**: Reviews the draft to strip away bias, opinion, and "flab".
+* **The Checklist**: The agent *only* approves the draft after verifying:
+  1. [ ] **Adjective Purge**: Are all subjective/judgmental adjectives removed? (e.g., "devastating", "skyrocketed", "fears", "hopes").
+  2. [ ] **Neutral Verbs**: Are attribution verbs neutral? (Use "said" instead of "claimed", "insisted", "admitted").
+  3. [ ] **No Causal Inference**: Is the distinction between correlation and causation strictly maintained?
+  4. [ ] **Citation Check**: Is every claim explicitly backed by a source?
+  5. [ ] **Tone Check**: Is the tone strictly third-person and devoid of emotional language?
 
-### Interpreting Results
+### 2. Ranking Logic (GDELT)
 
-- **Green Badges**: Fact-checked and verified
-- **Yellow Badges**: Pending verification
-- **Red Badges**: Disputed claims identified
-- **Chart Heights**: Relative article volume
-- **Heat Map Intensity**: Geographic concentration
+To prioritize what matters, we use a weighted impact formula:
 
-## Development Roadmap
+* **Goldstein Scale**: Measures the theoretical impact of an event on a country's stability (-10 for conflict, +10 for cooperation).
+* **NumMentions**: Acts as a weight for significance; highly covered stories are more likely to influence global trends.
+* **Ranking Priority**:
 
-### Phase 1: Core Functionality ✅
-- Multi-source aggregation
-- Basic deduplication
-- Excel exports
-- Initial Superset dashboard
+  1. **Impact**: Calculated via `Population Size (Region/Beat) * Goldstein Scale`.
+  2. **Significance**: Validated by `NumMentions`.
+  3. **Volume Control**: Strict limit of **100 Articles/Day**.
 
-### Phase 2: Enhanced Verification ✅
-- Fact-checker integration
-- Journalist database
-- MAR curation process
-- Schema validation
+  * **Politics (40)**: 10 per region (NAM, EMEA, APAC, LATAM).
+  * **Beats (60)**: 10 per beat (Business, Tech, Science, Social, Entertainment, Sports).
 
-### Phase 3: Automation (In Progress)
-- [x] Airflow integration
-- [x] CI validation
-- [ ] Slack notifications
-- [ ] Archive.org integration
-- [ ] Strict 100-article cap
+### 3. Verification Workflow
 
-### Phase 4: Future Enhancements
-- [ ] Real-time streaming (vs. daily batch)
-- [ ] Multi-language support
-- [ ] ML-powered classification
-- [ ] Public API
-- [ ] Mobile applications
+We move beyond simple filtering to active verification:
 
-## Contributing
+* **Source Diversity**: Aggregates reporting logic from RSS feeds (News sites, Social Media) and GDELT.
+* **Cross-Reference**: Verifies if an event is being reported by multiple independent resources.
+* **Human-in-the-Loop Validation**: Uses a **Journalist Database** (diverse group across regions and beats) to validate the credibility of the reporting.
+* **Fact-Checking Integration**: Cross-references claims against trusted APIs like Snopes and PolitiFact.
 
-Contributions welcome! Areas for improvement:
-- Additional news sources
-- Journalist database expansion
-- Fact-checker integrations
-- Dashboard visualizations
-- Documentation
+## Source Intelligence
 
-See repository for contribution guidelines.
+> **[View Detailed Source Documentation](Research/Source.md)**
 
-## References
+For a comprehensive analysis of available data streams, including:
 
-1. GDELT Project: https://www.gdeltproject.org/
-2. International Fact-Checking Network: https://www.poynter.org/ifcn/
-3. Archive.org API Documentation
-4. Apache Superset Documentation
-5. Reflexion: Language Agents with Verbal Reinforcement Learning
+* **Unlimited & Free Data Sources** (GDELT, RSS, Official APIs)
+* **Fact-Checking Resources** (Snopes, PolitiFact)
+* **RSS Feed Library** (Categorized feeds for World, Tech, Finance)
+* **Usage Rights & Compliance Guide**
 
-## Acknowledgments
+## Verification Intelligence
 
-- GDELT Project for global event data
-- Fact-checking organizations for verification databases
-- Journalist community for quality reporting
-- Open-source community for tools and frameworks
+> **[View Verification Strategy](Research/Verifiers.md)** | **[View Journalist Database](Research/Journalist-Database.csv)**
 
-## License
+A curated signal layer to cross-reference against high-volume automated streams.
 
-This project is open-source. Individual articles retain their original copyright.
+* **Human Signal Database**: A structured CSV of **320+ Journalists** balanced by Region (NAM, EMEA, APAC, LATAM) and Beat.
+  * **Politics**: Spectrum-balanced (Center/Left/Right/Ind).
+  * **Industry**: Role-balanced (Freelance Influencers vs. Agency Reporters).
 
----
+## 🔒 Data Retention, Privacy & Compliance
 
-**Project Maintainer**: BRT Research Team  
-**Last Updated**: December 29, 2025  
-**Version**: 2.0
+### Data Retention Policy
+
+* **Local Storage**: Articles are stored in local Excel files (`rss_feed_output.xlsx` and `news_api_output.xlsx`).
+* **Retention Period**: Data is retained for processing and aggregation purposes.
+* **No Long-Term Archival**: Beyond local storage, no articles are permanently archived.
+* **Purpose**: Data is collected solely for news aggregation and analysis.
+
+### Robots.txt Compliance
+
+* **RSS Feeds**: All RSS feeds are publicly accessible resources provided by publishers for syndication.
+* **Respect for robots.txt**: The system respects robots.txt directives from news sources.
+* **API Usage**: GDELT and NewsData.io provide data through official APIs with proper terms of service.
+* **Social Media**: Journalist handles on social media are publicly available information.
+
+### Privacy Policy
+
+* **No Personal Data Collection**: The system does not collect any personal information from users.
+* **Publicly Available Content**: All aggregated content is from publicly accessible news sources.
+* **Journalist Database**: Uses only publicly available social media handles from verified journalists.
+* **No Tracking**: No user tracking or analytics beyond GitHub Pages defaults.
+* **Data Usage**: Collected news data is used exclusively for aggregation and analysis purposes.
+* **Third-Party Services**:
+
+- GDELT and NewsData.io with their respective privacy policies
