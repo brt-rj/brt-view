@@ -20,7 +20,7 @@ website:
 format:
   html:
     theme: cosmo
-    css: styles.css
+
     toc: true
     code-fold: true # Allow hiding/showing code blocks
     code-tools: true # Enable code tools menu
