@@ -15,6 +15,8 @@ import pandas as pd
 import os
 from itables import show
 from datetime import datetime
+from IPython.display import display, HTML
+import ipywidgets as widgets
 
 # Path to data (relative to serve/ directory where this file sits)
 # In CI, files are copied to static/data, but for local dev we might look elsewhere.
@@ -41,7 +43,7 @@ for path in possible_paths:
 if df is not None:
     # Basic Preprocessing
     if 'published_date' in df.columns:
-        df['published_date'] = pd.to_datetime(df['published_date'])
+        df['published_date'] = pd.to_datetime(df['published_date'], format='ISO8601')
         df = df.sort_values('published_date', ascending=False)
     
     # Display top metrics
@@ -49,18 +51,69 @@ if df is not None:
     latest_date = df['published_date'].max() if 'published_date' in df.columns else "N/A"
     
     print(f"**Total Articles:** {total_articles} | **Latest Update:** {latest_date}")
+    print("")
     
-    # Select key columns for display
-    cols_to_show = ['published_date', 'title', 'source', 'beat', 'region', 'impact_score', 'link']
-    display_df = df[[c for c in cols_to_show if c in df.columns]].copy()
+    # Create filter dropdowns
+    regions = ['All'] + sorted(df['region'].dropna().unique().tolist()) if 'region' in df.columns else ['All']
+    beats = ['All'] + sorted(df['beat'].dropna().unique().tolist()) if 'beat' in df.columns else ['All']
     
-    # Make links clickable if 'link' exists
-    if 'link' in display_df.columns:
-        display_df['title'] = display_df.apply(lambda x: f'<a href="{x["link"]}" target="_blank">{x["title"]}</a>', axis=1)
-        display_df = display_df.drop(columns=['link'])
-
-    # Show interactive table using itables (datatables wrapper)
-    show(display_df, classes="display nowrap compact", scrollX=True, pageLength=15)
+    region_filter = widgets.Dropdown(
+        options=regions,
+        value='All',
+        description='Region:',
+        style={'description_width': 'initial'}
+    )
+    
+    beat_filter = widgets.Dropdown(
+        options=beats,
+        value='All',
+        description='Beat:',
+        style={'description_width': 'initial'}
+    )
+    
+    output = widgets.Output()
+    
+    def update_table(*args):
+        with output:
+            output.clear_output(wait=True)
+            
+            # Apply filters
+            filtered_df = df.copy()
+            
+            if region_filter.value != 'All':
+                filtered_df = filtered_df[filtered_df['region'] == region_filter.value]
+            
+            if beat_filter.value != 'All':
+                filtered_df = filtered_df[filtered_df['beat'] == beat_filter.value]
+            
+            # Display filtered count
+            filtered_count = len(filtered_df)
+            print(f"**Showing {filtered_count} of {total_articles} articles**")
+            print("")
+            
+            # Select key columns for display
+            cols_to_show = ['published_date', 'title', 'source', 'beat', 'region', 'impact_score', 'link']
+            display_df = filtered_df[[c for c in cols_to_show if c in filtered_df.columns]].copy()
+            
+            # Make links clickable if 'link' exists
+            if 'link' in display_df.columns:
+                display_df['title'] = display_df.apply(lambda x: f'<a href="{x["link"]}" target="_blank">{x["title"]}</a>', axis=1)
+                display_df = display_df.drop(columns=['link'])
+            
+            # Show interactive table using itables (datatables wrapper)
+            show(display_df, classes="display nowrap compact", scrollX=True, pageLength=15)
+    
+    # Link filters to update function
+    region_filter.observe(update_table, names='value')
+    beat_filter.observe(update_table, names='value')
+    
+    # Display filters
+    print("### Filters")
+    display(widgets.HBox([region_filter, beat_filter]))
+    
+    # Initial table display
+    display(output)
+    update_table()
 
 else:
     print("⚠️ Data not found. Ensure 'articles.parquet' is generated and available in static/data or sources.")
@@ -68,33 +121,3 @@ else:
 
 ```
 
-## Feeder Status
-
-```{python}
-#| echo: false
-#| warning: false
-
-# Placeholder for Feeder Status
-# Attempts to load feeder_health.parquet if available
-
-feeder_paths = [
-    "../static/data/feeder_health.parquet",
-    "../sources/no_flab_brief/feeder_health.parquet"
-]
-
-feed_df = None
-
-for path in feeder_paths:
-    if os.path.exists(path):
-        try:
-            feed_df = pd.read_parquet(path)
-            break
-        except:
-            pass
-
-if feed_df is not None:
-    show(feed_df, classes="display compact")
-else:
-    print("Feeder status data currently unavailable.")
-
-```
