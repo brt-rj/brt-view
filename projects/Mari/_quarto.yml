@@ -1,0 +1,23 @@
+project:
+  type: website
+  output-dir: build
+
+website:
+  title: "Maritime Engine"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+    right:
+      - icon: github
+        href: https://github.com/brt-rj/Mari
+        aria-label: GitHub
+  
+  site-url: /brt-serve/projects/Mari
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-fold: true
+    code-tools: true

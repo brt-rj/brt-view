@@ -1,0 +1,23 @@
+project:
+  type: website
+  output-dir: build
+
+website:
+  title: "Nature VCM"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+    right:
+      - icon: github
+        href: https://github.com/brt-rj/NVCM
+        aria-label: GitHub
+  
+  site-url: /brt-serve/projects/NVCM
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-fold: true
+    code-tools: true

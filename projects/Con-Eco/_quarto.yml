@@ -1,0 +1,23 @@
+project:
+  type: website
+  output-dir: build
+
+website:
+  title: "Construction Econ"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+    right:
+      - icon: github
+        href: https://github.com/brt-rj/Con-Eco
+        aria-label: GitHub
+  
+  site-url: /brt-serve/projects/Con-Eco
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-fold: true
+    code-tools: true
