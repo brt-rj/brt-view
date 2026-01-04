@@ -63,7 +63,7 @@ if df is not None:
     
     # Show interactive table using itables (datatables wrapper)
     # itables provides client-side filtering and sorting in the browser
-    show(display_df, classes="display nowrap compact", scrollX=True, pageLength=25)
+    show(display_df, classes="display nowrap compact", scrollX=True, pageLength=25, column_filters="header")
 
 else:
     print("⚠️ Data not found. Ensure 'articles.parquet' is generated and available in static/data or sources.")
