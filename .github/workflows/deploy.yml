@@ -37,11 +37,25 @@ jobs:
 
       - name: Render Quarto Dashboards
         run: |
+          # Debug: Print current directory and list projects
+          echo "Current directory: $(pwd)"
+          echo "Listing projects directory:"
+          ls -la projects/
+          
           # Only render no-flab-brief which has actual data and dashboard content
           # Other projects use static index.md files with placeholders
           if [ -d "projects/no-flab-brief" ]; then
-            echo "Rendering no-flab-brief..."
-            quarto render "projects/no-flab-brief" --to html
+            echo "Found no-flab-brief directory"
+            echo "Contents:"
+            ls -la projects/no-flab-brief/
+            
+            echo "Rendering no-flab-brief with Quarto..."
+            cd projects/no-flab-brief
+            quarto render . --to html
+            cd ../..
+            
+            echo "Render complete. Checking output:"
+            ls -la projects/no-flab-brief/build/ || echo "Build directory not found"
           else
             echo "ERROR: no-flab-brief directory not found"
             exit 1
