@@ -33,7 +33,7 @@ jobs:
 
       - name: Install Python Dependencies
         run: |
-          pip install jupyter matplotlib pandas plotly great_tables duckdb itables
+          pip install jupyter matplotlib pandas plotly great_tables duckdb itables pyarrow fastparquet
 
       - name: Render Quarto Dashboards
         run: |
